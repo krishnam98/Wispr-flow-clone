@@ -12,23 +12,23 @@
 
 # Core Features
 
-Global push-to-talk voice input
+- Global push-to-talk voice input
 
-Real-time speech-to-text transcription
+- Real-time speech-to-text transcription
 
-Interim and final transcript handling
+- Interim and final transcript handling
 
-Automatic text insertion into the focused input field
+- Automatic text insertion into the focused input field
 
-Microphone permission handling
+- Microphone permission handling
 
-Cross-platform desktop support using Tauri
+- Cross-platform desktop support using Tauri
 
 # Tech Stack
 
 ## Desktop Framework
 
-- Tauri (v2) — lightweight cross-platform desktop runtime
+- Tauri (v2)
 
 ## Frontend
 
