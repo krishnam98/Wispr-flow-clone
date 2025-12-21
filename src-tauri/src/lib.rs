@@ -1,16 +1,45 @@
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
+use tauri::Emitter;
+
+mod commands;
+
 pub fn run() {
-  tauri::Builder::default()
-    .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
-      Ok(())
-    })
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+    tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(desktop)]
+            {
+                use tauri_plugin_global_shortcut::{
+                    Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState,
+                };
+
+                // Ctrl + Shift push-to-talk shortcut
+                let ptt_shortcut = Shortcut::new(
+                    Some(Modifiers::CONTROL | Modifiers::SHIFT),
+                    Code::Space, // dummy key, modifiers matter
+                );
+
+                app.handle().plugin(
+                    tauri_plugin_global_shortcut::Builder::new()
+                        .with_handler(move |app, shortcut, event| {
+                            if shortcut == &ptt_shortcut {
+                                match event.state() {
+                                    ShortcutState::Pressed => {
+                                        app.emit("ptt-start", ()).unwrap();
+                                    }
+                                    ShortcutState::Released => {
+                                        app.emit("ptt-stop", ()).unwrap();
+                                    }
+                                }
+                            }
+                        })
+                        .build(),
+                )?;
+
+                app.global_shortcut().register(ptt_shortcut)?;
+            }
+
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![commands::get_deepgram_key])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
