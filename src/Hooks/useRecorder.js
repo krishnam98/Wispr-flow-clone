@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import {
   getMicrophoneStream,
   startAudioCapture,
@@ -12,32 +13,38 @@ import {
 
 export function useRecorder() {
   const [recording, setRecording] = useState(false);
-
   const [items, setItems] = useState([]);
+  const [status, setStatus] = useState("idle"); // status: idle |  connecting | listening | transcribing
+
+  // 🔑 SOURCE OF TRUTH
+  const itemsRef = useRef([]);
 
   const start = async () => {
+    setStatus("connecting");
     const stream = await getMicrophoneStream();
 
-    await startDeepgram((text, isFinal) => {
-      const cleaned = text?.trim();
-      if (!cleaned) return;
+    itemsRef.current = [];
+    setItems([]);
 
-      setItems((prev) => {
-        const updated = [...prev];
+    await startDeepgram(
+      (text, isFinal) => {
+        const cleaned = text?.trim();
+        if (!cleaned) return;
+
+        // Update REF first (authoritative)
+        let updated = [...itemsRef.current];
 
         if (isFinal) {
-          // Remove last interim if present
           if (updated.length && !updated[updated.length - 1].isFinal) {
             updated.pop();
           }
 
-          // Prevent duplicate final append
           if (
             updated.length &&
             updated[updated.length - 1].isFinal &&
             updated[updated.length - 1].text === cleaned
           ) {
-            return updated;
+            return;
           }
 
           updated.push({
@@ -46,7 +53,6 @@ export function useRecorder() {
             isFinal: true,
           });
         } else {
-          // Interim: replace last interim OR add new one
           if (updated.length && !updated[updated.length - 1].isFinal) {
             updated[updated.length - 1] = {
               ...updated[updated.length - 1],
@@ -61,26 +67,45 @@ export function useRecorder() {
           }
         }
 
-        return updated;
-      });
-    });
+        // Commit to both ref + state
+        itemsRef.current = updated;
+        setItems(updated);
+      },
+      {
+        onOpen: () => {
+          setStatus("listening");
+        },
+      }
+    );
 
     startAudioCapture(stream, sendAudio);
     setRecording(true);
   };
 
-  const stop = () => {
+  const stop = async () => {
     stopAudioCapture();
-
-    // Allow Deepgram to flush final transcript
     setTimeout(stopDeepgram, 300);
 
+    await new Promise((res) => setTimeout(res, 800));
+    console.log("items Ref", itemsRef.current);
+
+    // ✅ READ FROM REF (NOT STATE)
+    const finalText = itemsRef.current[0].text;
+
+    console.log("Final Transcript to paste:", finalText);
+
+    if (finalText.trim()) {
+      await invoke("paste_text", { text: finalText });
+    }
+
     setRecording(false);
+    setStatus("idle");
   };
 
   return {
     recording,
-    transcripts: items, // render this list directly
+    transcripts: items, // UI uses state
+    status,
     start,
     stop,
   };

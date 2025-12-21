@@ -4,6 +4,7 @@ mod commands;
 
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
             #[cfg(desktop)]
             {
@@ -11,7 +12,7 @@ pub fn run() {
                     Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState,
                 };
 
-                // Ctrl + Shift push-to-talk shortcut
+                // Ctrl + Shift + Space push-to-talk shortcut
                 let ptt_shortcut = Shortcut::new(
                     Some(Modifiers::CONTROL | Modifiers::SHIFT),
                     Code::Space, // dummy key, modifiers matter
@@ -39,7 +40,8 @@ pub fn run() {
 
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![commands::get_deepgram_key])
+        .invoke_handler(tauri::generate_handler![commands::get_deepgram_key,
+                                                 commands::paste_text])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

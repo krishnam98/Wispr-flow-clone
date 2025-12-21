@@ -10,7 +10,7 @@ const url =
   "&punctuate=true" +
   "&interim_results=true";
 
-export async function startDeepgram(onTranscript) {
+export async function startDeepgram(onTranscript, lifecycle = {}) {
   const apiKey = await invoke("get_deepgram_key");
 
   socket = new WebSocket(url, ["token", apiKey]);
@@ -18,31 +18,28 @@ export async function startDeepgram(onTranscript) {
   socket.onopen = () => {
     console.log("Deepgram Socket Open");
     isOpen = true;
+    lifecycle.onOpen?.();
   };
 
   socket.onmessage = (message) => {
     const data = JSON.parse(message.data);
     console.log("Deepgram message", data);
     const transcipt = data.channel?.alternatives[0]?.transcript;
+    const isFinal = data.is_final || data.speech_final;
 
     console.log(transcipt);
 
     if (transcipt) {
       onTranscript(transcipt);
     }
-
-    socket.onerror = (err) => {
-      console.error("Deepgram socket error", err);
-    };
-
-    socket.onclose = () => {
-      console.log("🔌 Deepgram connection closed");
-      isOpen = false;
-    };
+  };
+  socket.onerror = (err) => {
+    console.error("Deepgram socket error", err);
   };
 
-  socket.onerror = (e) => {
-    console.error("Deepgram Socket Error", e);
+  socket.onclose = () => {
+    console.log("🔌 Deepgram connection closed");
+    isOpen = false;
   };
 }
 
@@ -53,7 +50,14 @@ export function sendAudio(chunk) {
 }
 
 export function stopDeepgram() {
-  if (socket) {
-    socket.close();
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    // 🔑 Tell Deepgram to flush final transcript
+    socket.send(JSON.stringify({ type: "CloseStream" }));
+
+    setTimeout(() => {
+      if (socket) {
+        socket.close();
+      }
+    }, 800);
   }
 }
