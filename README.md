@@ -137,9 +137,7 @@ This starts the frontend and launches the native desktop app.
 
 ---
 
-# Architectural Decisions, Assumptions & Limitations
-
-## Architectural Decisions
+# Architectural Decisions
 
 ### Separation of Concerns
 
