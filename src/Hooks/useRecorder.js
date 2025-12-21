@@ -85,6 +85,12 @@ export function useRecorder() {
         onOpen: () => {
           setStatus("listening");
         },
+        onError: () => {
+          setStatus("idle");
+        },
+        onClose: () => {
+          setStatus("idle");
+        },
       }
     );
 

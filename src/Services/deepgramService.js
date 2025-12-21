@@ -35,10 +35,13 @@ export async function startDeepgram(onTranscript, lifecycle = {}) {
   };
   socket.onerror = (err) => {
     console.error("Deepgram socket error", err);
+    lifecycle.onError?.();
   };
 
   socket.onclose = () => {
     console.log("🔌 Deepgram connection closed");
+    lifecycle.onClose?.();
+
     isOpen = false;
   };
 }
