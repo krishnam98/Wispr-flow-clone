@@ -2,13 +2,18 @@ let audioContext;
 let processor;
 
 export async function getMicrophoneStream() {
-  return navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: true,
-      noiseSuppression: true,
-      sampleRate: 16000,
-    },
-  });
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 16000,
+      },
+    });
+  } catch (err) {
+    console.error("Microphone permission error:", err);
+    throw new Error("MIC_PERMISSION_DENIED");
+  }
 }
 
 export function startAudioCapture(stream, onAudioChunk) {

@@ -1,16 +1,169 @@
-# React + Vite
+# Wispr Flow Clone — Voice-to-Text Desktop App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> A functional clone of Wispr Flow, focused on delivering a reliable push-to-talk voice transcription workflow.
+> This project demonstrates real-time audio capture, low-latency speech recognition, and seamless text insertion into any active text field using a lightweight desktop architecture.
 
-Currently, two official plugins are available:
+# Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+> This application enables users to dictate text using voice from anywhere on their system.
+> By holding a push-to-talk shortcut, users can speak naturally and have their speech transcribed and inserted directly into the currently focused text input (browser, editor, document, etc.).
 
-## React Compiler
+> The project prioritizes functionality, correctness, and clean architecture over UI polish, in line with the assignment goals.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+# Core Features
 
-## Expanding the ESLint configuration
+Global push-to-talk voice input
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Real-time speech-to-text transcription
+
+Interim and final transcript handling
+
+Automatic text insertion into the focused input field
+
+Microphone permission handling
+
+Cross-platform desktop support using Tauri
+
+# Tech Stack
+
+## Desktop Framework
+
+- Tauri (v2) — lightweight cross-platform desktop runtime
+
+## Frontend
+
+- React
+
+- JavaScript
+
+- Vite
+
+## Speech Recognition
+
+- Deepgram API (real-time streaming)
+
+## How to Use Voice Transcription
+
+> Hold the “Hold to Speak” button in the app, or press Ctrl / Cmd + Shift + Space to begin dictation.
+> While speaking, keep any text field on your screen selected (browser, editor, document, etc.).
+> Release the button or shortcut to stop recording.
+> Your speech will be transcribed and automatically inserted into the focused text field.
+> For best results, ensure microphone access is enabled.
+
+# Usage Guide
+
+- Keep the application running in the background.
+
+- Select the text box where you want the transcribed text to appear.
+
+- Press and hold Ctrl / Cmd + Shift + Space.
+
+- Wait briefly (≈ 0.5 seconds) for the transcription service to connect.
+
+- Speak clearly while holding the shortcut.
+
+- Release the shortcut to stop recording.
+
+- The final transcription is automatically inserted.
+
+## Best Practices for Accurate Transcription
+
+- Use a clear, loud, and noise-free voice
+
+- Avoid background noise or overlapping speech
+
+- Use a quality microphone if available
+
+- Maintain consistent speech while holding the push-to-talk input
+
+# Setup & Installation
+
+## Prerequisites
+
+- Ensure the following are installed:
+
+- Node.js (v18+ recommended)
+
+- npm or pnpm
+
+- Rust (required by Tauri)
+
+- Tauri CLI
+
+Install Tauri CLI
+
+```bash
+npm install -g @tauri-apps/cli
+```
+
+---
+
+Clone the Repository
+
+```bash
+git clone https://github.com/krishnam98/Wispr-flow-clone
+
+cd wisper-flow-clone
+```
+
+---
+
+Install Dependency
+
+```bash
+npm install
+```
+
+---
+
+Environment Configuration
+Create `.env` file in the field
+
+```env
+DEEPGRAM_API_KEY=your_deepgram_api_key_here
+```
+
+---
+
+Run the App
+
+```bash
+npx run tauri dev
+```
+
+---
+
+This starts the frontend and launches the native desktop app.
+
+---
+
+# Architectural Decisions, Assumptions & Limitations
+
+## Architectural Decisions
+
+### Separation of Concerns
+
+- Audio capture, transcription, state management, and UI are implemented as independent modules.
+
+- This ensures clean boundaries, easier debugging, and future extensibility.
+
+### Push-to-Talk Workflow
+
+- Chosen to prevent unintended recordings and unnecessary API usage.
+- Gives users explicit control over when recording starts and stops.
+
+### Real-Time Streaming with Finalization
+
+- Audio is streamed continuously.
+- Interim transcripts provide live feedback.
+- Final transcripts are committed only after the stream confirms completion, preventing partial or missing output.
+
+### Clipboard-Based Text Insertion
+
+- Text insertion is handled via the system clipboard for reliability across applications and platforms.
+
+---
+
+# Author
+
+## KRISHNAM SONI

@@ -14,14 +14,26 @@ import {
 export function useRecorder() {
   const [recording, setRecording] = useState(false);
   const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
   const [status, setStatus] = useState("idle"); // status: idle |  connecting | listening | transcribing
 
-  // 🔑 SOURCE OF TRUTH
+  // ref to hold current items without causing re-renders
   const itemsRef = useRef([]);
 
   const start = async () => {
     setStatus("connecting");
-    const stream = await getMicrophoneStream();
+    setError("");
+    let stream;
+
+    try {
+      stream = await getMicrophoneStream();
+    } catch (error) {
+      if (error.message === "MIC_PERMISSION_DENIED") {
+        setError("Microphone access is required to use voice transcription.");
+        setStatus("idle");
+      }
+      return;
+    }
 
     itemsRef.current = [];
     setItems([]);
@@ -31,7 +43,6 @@ export function useRecorder() {
         const cleaned = text?.trim();
         if (!cleaned) return;
 
-        // Update REF first (authoritative)
         let updated = [...itemsRef.current];
 
         if (isFinal) {
@@ -67,7 +78,6 @@ export function useRecorder() {
           }
         }
 
-        // Commit to both ref + state
         itemsRef.current = updated;
         setItems(updated);
       },
@@ -89,7 +99,6 @@ export function useRecorder() {
     await new Promise((res) => setTimeout(res, 800));
     console.log("items Ref", itemsRef.current);
 
-    // ✅ READ FROM REF (NOT STATE)
     const finalText = itemsRef.current[0].text;
 
     console.log("Final Transcript to paste:", finalText);
@@ -104,7 +113,8 @@ export function useRecorder() {
 
   return {
     recording,
-    transcripts: items, // UI uses state
+    transcripts: items,
+    error,
     status,
     start,
     stop,

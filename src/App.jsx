@@ -8,7 +8,7 @@ import PTTNudge from "./Components/PTTNudge";
 import Instruction from "./Components/Instruction";
 
 function App() {
-  const { recording, transcripts, status, start, stop } = useRecorder();
+  const { recording, transcripts, error, status, start, stop } = useRecorder();
   const isRecordingRef = useRef(false);
 
   useEffect(() => {
@@ -41,9 +41,13 @@ function App() {
     <div className="flex flex-col p-4 gap-4 items-center justify-center h-screen border-2 bg-[#fffae5]">
       <div className="w-[70%]"><h1 className="text-5xl font-bold mb-4">Wispr Flow Clone</h1></div>
       <Instruction />
-
       <PushToTalkButton recording={recording} start={start} stop={stop} />
       <TranscriptDisplay transcripts={transcripts} />
+      {error && (
+        <p className="text-sm text-red-500 mt-2 text-center">
+          {error}
+        </p>
+      )}
       <PTTNudge status={status} />
     </div>
   );
